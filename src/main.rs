@@ -1,19 +1,8 @@
 #![deny(warnings)]
 use warp::Filter;
 
-use serde::Serialize;
-use serde::Deserialize;
-
 mod blogs;
 use blogs::blogs::blogposts;
-
-#[derive(Serialize, Deserialize)]
-struct BlogPost {
-    id: i32,
-    titel: i32,
-    content: i32,
-}
-
 
 #[tokio::main]
 async fn main() { 
