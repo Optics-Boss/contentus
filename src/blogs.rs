@@ -16,6 +16,8 @@ pub mod blogs {
             .or(index())
     }
 
+
+
     pub fn index() -> impl Filter<Extract = (impl warp::Reply,), Error = warp::Rejection> + Clone {
         warp::path!()
             .and(warp::get())
@@ -23,20 +25,17 @@ pub mod blogs {
     }
 
     pub fn blogposts_list() -> impl Filter<Extract = (impl warp::Reply,), Error = warp::Rejection> + Clone {
-
         warp::path!("blogs")
             .and(warp::get())
-            .and(&handler::list_blogs())
+            .and_then(handler::list_blogs)
     }
-
-
 }
 
 mod handler {
     use std::convert::Infallible;
     use crate::blogs::blogs::BlogPost;
 
-    pub fn list_blogs() -> Result<impl warp::Reply, Infallible> {
+    pub async fn list_blogs() -> Result<impl warp::Reply, Infallible> {
         let blogs : Vec<BlogPost> = vec![
             BlogPost{ 
                 id: 1, 
