@@ -32,22 +32,30 @@ pub mod blogs {
 }
 
 mod handler {
-    use std::convert::Infallible;
+    use std::{convert::Infallible, fs::File, vec};
+    use csv::StringRecord;
+
     use crate::blogs::blogs::BlogPost;
 
     pub async fn list_blogs() -> Result<impl warp::Reply, Infallible> {
-        let blogs : Vec<BlogPost> = vec![
-            BlogPost{ 
-                id: 1, 
-                titel: String::from("Test"), 
-                content: String::from("Lorem ipsum dolor sit amet, qui minim labore adipisicing minim sint cillum sint consectetur cupidatat.") 
-            },
-            BlogPost{ 
-                id: 2,
-                titel: String::from("Test 2"),
-                content: String::from("Lorem ipsum dolor sit amet, qui minim labore adipisicing minim sint cillum sint consectetur cupidatat.")
-            }
-        ];
+
+        let file = File::open("database/test.csv").expect("Can't open file");
+        let mut reader = csv::Reader::from_reader(file);
+        let mut blogs : Vec<BlogPost> = vec!();
+
+        for (index, line) in reader.records().into_iter().enumerate() {
+            let record = StringRecord::from(line.unwrap());
+            let titel = record.get(0); 
+            let content = record.get(1); 
+
+            blogs.push(
+                BlogPost { 
+                    id: (index + 1) as i32, 
+                    titel: String::from(titel.unwrap_or("")), 
+                    content: String::from(content.unwrap_or("")) 
+                }
+            );
+        }
 
         Ok(warp::reply::json(&blogs))
     }
