@@ -13,15 +13,14 @@ pub mod blogs {
 
     pub fn blogposts() -> impl Filter<Extract = (impl warp::Reply,), Error = warp::Rejection> + Clone {
         blogposts_list()
+            .or(blogposts_create())
             .or(index())
     }
-
-
 
     pub fn index() -> impl Filter<Extract = (impl warp::Reply,), Error = warp::Rejection> + Clone {
         warp::path!()
             .and(warp::get())
-            .map(|| "Contentus")
+            .and(warp::fs::dir("frontend"))
     }
 
     pub fn blogposts_list() -> impl Filter<Extract = (impl warp::Reply,), Error = warp::Rejection> + Clone {
@@ -29,11 +28,19 @@ pub mod blogs {
             .and(warp::get())
             .and_then(handler::list_blogs)
     }
+
+    pub fn blogposts_create() -> impl Filter<Extract = (impl warp::Reply,), Error = warp::Rejection> + Clone {
+        warp::path!("blogs")
+            .and(warp::post())
+            .and(warp::body::json())
+            .and_then(handler::create_blog)
+    }
 }
 
 mod handler {
     use std::{convert::Infallible, fs::File, vec};
     use csv::StringRecord;
+    use warp::http::StatusCode;
 
     use crate::blogs::blogs::BlogPost;
 
@@ -58,5 +65,15 @@ mod handler {
         }
 
         Ok(warp::reply::json(&blogs))
+    }
+
+    pub async fn create_blog(post: BlogPost) -> Result<impl warp::Reply, Infallible> {
+        let file = File::open("database/test.csv").expect("Can't open file");
+        let mut writer = csv::Writer::from_writer(file);
+
+        writer.write_record(&[post.titel, post.content]).expect("Can't write record to file");
+        writer.flush().expect("Can't flush file");
+
+        Ok(StatusCode::CREATED)
     }
 }
