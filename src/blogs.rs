@@ -31,9 +31,9 @@ pub mod blogs {
     }
 
     pub fn frontend() -> impl Filter<Extract = (impl warp::Reply,), Error = warp::Rejection> + Clone {
-        warp::path!("scripts")
+        warp::path("scripts")
             .and(warp::get())
-            .and(warp::fs::file("frontend/scripts/index.js"))
+            .and(warp::fs::dir("/frontend/scripts"))
     }
 
     pub fn blogposts_list() -> impl Filter<Extract = (impl warp::Reply,), Error = warp::Rejection> + Clone {
